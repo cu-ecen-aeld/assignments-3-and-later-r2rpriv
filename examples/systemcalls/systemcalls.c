@@ -1,4 +1,9 @@
 #include "systemcalls.h"
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <fcntl.h>
 
 /**
  * @param cmd the command to execute with system()
@@ -10,14 +15,11 @@
 bool do_system(const char *cmd)
 {
 
-/*
- * TODO  add your code here
- *  Call the system() function with the command set in the cmd
- *   and return a boolean true if the system() call completed with success
- *   or false() if it returned a failure
-*/
-
-    return true;
+   int ret = system(cmd);
+   if(WIFEXITED(ret))
+    	return true;
+   else
+	return false;
 }
 
 /**
@@ -58,10 +60,28 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *
 */
+   int status;
+   int childpid = fork();
+   if(childpid ==  0) {
+   	int ret;
+   	ret = execv(command[0],command);
+   	 if(WIFEXITED(ret))
+   		return 0;
+   	 else
+   		return -1;
+   }
+   else if(childpid == -1) {
+   	perror("fork failed");
+   	return false;
+   } else{
+   	waitpid(childpid,&status,0);
+   }
 
     va_end(args);
-
-    return true;
+    if(status == 0)
+    	return true;
+    else
+	return false;
 }
 
 /**
@@ -92,8 +112,42 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
+   int childpid = fork();
+   int status;
+   int ret;
+   int fd;
+   if(childpid == 0){		
+   	fd = open(outputfile, O_RDWR | O_CREAT | O_TRUNC, 0600);
+   	if (fd == -1) {
+   	    perror("open failed");
+   	    return false;
+   	}
+   
+   	// Redirect stdout to the file
+   	if (dup2(fd, STDOUT_FILENO) == -1) {
+   	    perror("dup2 failed");
+   	    return false;
+   	}
+   	close(fd);
+   
+   	ret = execv(command[0],command);
+	if(WIFEXITED(ret))
+	   return 0;
+	else
+	   return -1;
+   }
+   else if(childpid == -1){
+   	perror("fork failed");
+   	return false;
+   }
+   else{
+   	waitpid(childpid,&status,0);
+   }
 
     va_end(args);
 
-    return true;
+    if(status == 0)
+      return true;
+    else
+      return false;
 }
