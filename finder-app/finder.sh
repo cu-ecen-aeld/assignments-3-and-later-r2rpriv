@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 filesdir=${1:-""}
 searchstr=${2:-""}
