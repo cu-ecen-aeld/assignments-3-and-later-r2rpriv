@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+common_args="--oknodo --name aesdsocket"
+d_stop(){
+	start-stop-daemon -K ${common_args} -s TERM
+
+}
+d_start() {
+	start-stop-daemon -S ${common_args} --startas /usr/local/bin/aesdsocket -- -d
+}
+trap stop SIGTERM SIGINT
+
+case "$1" in
+	start|--start|-s)
+		echo "starting aesd-socket-start-stop daemon"
+		d_start
+		;;
+	stop|--stop|-K)
+		d_stop
+		;;
+	*)
+		echo "Usage: $0 start|stop"
+		exit 1
+esac
+exit 0
