@@ -24,7 +24,7 @@ void handle_client(int client_fd, struct sockaddr_in address) {
     int file_fd;
 
     while (!signal_handle) {
-        bytes_received = recv(client_fd, buffer + total_bytes_received, BUFFER_SIZE, 0);
+        bytes_received = read(client_fd, buffer + total_bytes_received, BUFFER_SIZE);
         if (bytes_received < 0) {
             perror("recv");
 	    free(buffer);
