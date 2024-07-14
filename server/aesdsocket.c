@@ -24,7 +24,7 @@ void handle_client(int client_fd, struct sockaddr_in address) {
     int file_fd;
 
     while (!signal_handle) {
-	if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &buffer_size, sizeof(buffer_size)) == -1) {
+	if (setsockopt(client_fd, SOL_SOCKET, SO_RCVBUF, &buffer_size, sizeof(buffer_size)) == -1) {
             perror("setsockopt() error");
 	    free(buffer);
             close(client_fd);
@@ -49,7 +49,7 @@ void handle_client(int client_fd, struct sockaddr_in address) {
 
 	if(total_bytes_received == buffer_size){
 	    buffer_size *= 2;
-	    char *newbuff = i(char *)realloc(buffer, buffer_size);
+	    char *newbuff = (char *)realloc(buffer, buffer_size);
             if (newbuff == NULL) {
                 perror("realloc");
 		free(buffer);
