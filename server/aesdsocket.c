@@ -49,12 +49,14 @@ void handle_client(int client_fd, struct sockaddr_in address) {
 
 	if(total_bytes_received == buffer_size){
 	    buffer_size *= 2;
-	    buffer = realloc(buffer, buffer_size);
-            if (buffer == NULL) {
+	    char *newbuff = i(char *)realloc(buffer, buffer_size);
+            if (newbuff == NULL) {
                 perror("realloc");
+		free(buffer);
                 close(client_fd);
                 return;
             }
+	    buffer = newbuff;
 	}
 
         // Check if we have received a newline character
