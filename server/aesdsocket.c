@@ -11,7 +11,7 @@
 #include <syslog.h>
 
 #define PORT 9000
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 8192
 #define FILENAME "/var/tmp/aesdsocketdata"
 
 volatile int  signal_handle = 0;
@@ -24,7 +24,13 @@ void handle_client(int client_fd, struct sockaddr_in address) {
     int file_fd;
 
     while (!signal_handle) {
-        bytes_received = read(client_fd, buffer + total_bytes_received, BUFFER_SIZE);
+	if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &buffer_size, sizeof(buffer_size)) == -1) {
+            perror("setsockopt() error");
+	    free(buffer);
+            close(client_fd);
+            return;
+        }
+        bytes_received = recv(client_fd, buffer + total_bytes_received, buffer_size - total_bytes_received, 0);
         if (bytes_received < 0) {
             perror("recv");
 	    free(buffer);
@@ -92,6 +98,7 @@ void handle_client(int client_fd, struct sockaddr_in address) {
             total_bytes_received = 0; // Reset buffer for the next message
         }
     }
+    free(buffer);
     close(client_fd);
     return;
 }
